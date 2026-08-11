@@ -16,6 +16,9 @@ Java 21 + Spring Boot service that validates users/products, calculates totals a
 | `PORT` | `8083` |
 | `USER_SERVICE_URL` | `http://localhost:8081` |
 | `CATALOG_SERVICE_URL` | `http://localhost:8000` |
+| `APP_VERSION` | `1.0.0` |
+
+`GET /health` returns `status`, `service` and the deployed `version`.
 
 ## Run and test
 

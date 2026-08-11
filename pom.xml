@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.polyglotshop</groupId>
+    <groupId>com.nexuscart</groupId>
     <artifactId>order-service</artifactId>
     <version>1.0.0</version>
     <name>order-service</name>
-    <description>Order service for the Polyglot Mini Shop demo</description>
+    <description>Order service for the NexusCart demo</description>
 
     <properties>
         <java.version>21</java.version>

@@ -169,15 +169,14 @@ a portable multi-container setup.
 
 ## 🔁 CI/CD
 
-`azure-pipelines.yml` owns this repository's variables and composes the local
-`pipelines/stages/ci.yml`, `deploy-dev.yml`, and `deploy-prod.yml` stage
-templates. It extends only the minimal shared contract in the GitHub `devops`
-repository.
+`azure-pipelines.yml` is a small entry point that composes reusable checkout,
+Java setup, Maven verification, report, and Qodana step templates from
+`config-management`. Shared stage and job templates own the orchestration.
 
-- Every branch runs the Maven test suite, builds the image, and scans it with
-  Trivy.
-- `main` publishes an immutable `$(Build.BuildId)` image to Azure Container
-  Registry and promotes it through DEV and PROD with Helm verification.
+- Every branch publishes JUnit and coverage reports, runs Qodana, builds the
+  image, and scans it with Trivy.
+- `main` pushes the `$(Build.BuildId)` and `latest` tags to Azure Container
+  Registry.
 
 ## 📁 Repository Structure
 
@@ -193,10 +192,6 @@ order-service/
 │   └── service/            # Order validation and calculation
 ├── src/main/resources/application.yml
 ├── src/test/               # Controller, context, and domain tests
-├── pipelines/stages/
-│   ├── ci.yml              # Test, build, scan, and ACR push
-│   ├── deploy-dev.yml      # DEV deploy and verification
-│   └── deploy-prod.yml     # Approval, PROD deploy, and verification
 ├── azure-pipelines.yml
 ├── Dockerfile
 ├── mvnw

@@ -27,15 +27,13 @@ stages:
     dockerfilePath: Dockerfile
     containerRegistry: acrLoginServer
     qualitySteps:
-    - task: JavaToolInstaller@0
-      displayName: 'Use Java 21'
-      inputs:
-        versionSpec: '21'
-        jdkArchitectureOption: x64
-        jdkSourceOption: PreInstalled
-
-    - bash: |
-        set -euo pipefail
-        chmod +x mvnw
-        ./mvnw --batch-mode --no-transfer-progress verify
-      displayName: 'Test and build'
+    - template: pipelines/templates/steps/checkout.yml@configTemplates
+    - template: pipelines/templates/steps/maven/setup.yml@configTemplates
+    - template: pipelines/templates/steps/maven/verify.yml@configTemplates
+    - template: pipelines/templates/steps/reports.yml@configTemplates
+      parameters:
+        testResultsFiles: '$(System.DefaultWorkingDirectory)/**/surefire-reports/TEST-*.xml'
+        coverageSummaryFile: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+    - template: pipelines/templates/steps/qodana.yml@configTemplates
+      parameters:
+        linter: qodana-jvm-community

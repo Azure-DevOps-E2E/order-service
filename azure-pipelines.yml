@@ -1,86 +1,41 @@
 trigger:
   branches:
     include:
-      - '*'
+    - '*'
 
 pr:
   branches:
     include:
-      - '*'
+    - '*'
 
-variables:
-  - group: nexuscart-shared
-  - name: vmImage
-    value: ubuntu-latest
-  - name: serviceName
-    value: order-service
-  - name: imageRepository
-    value: order-service
-  - name: dockerfilePath
-    value: Dockerfile
-  - name: imageTag
-    value: $(Build.BuildId)
-  - name: fullImageName
-    value: $(acrLoginServer)/$(imageRepository):$(imageTag)
+resources:
+  repositories:
+  - repository: configTemplates
+    type: github
+    endpoint: github.com_Azure-DevOps-E2E
+    name: Azure-DevOps-E2E/config-management
+    ref: refs/heads/main
 
 pool:
-  vmImage: $(vmImage)
+  vmImage: ubuntu-latest
 
-steps:
-  - checkout: self
-    clean: true
+stages:
+- template: pipelines/templates/service-stages.yml@configTemplates
+  parameters:
+    serviceName: order-service
+    imageName: order-service
+    dockerfilePath: Dockerfile
+    containerRegistry: acrLoginServer
+    qualitySteps:
+    - task: JavaToolInstaller@0
+      displayName: 'Use Java 21'
+      inputs:
+        versionSpec: '21'
+        jdkArchitectureOption: x64
+        jdkSourceOption: PreInstalled
 
-  - task: JavaToolInstaller@0
-    displayName: Use Java 21
-    inputs:
-      versionSpec: '21'
-      jdkArchitectureOption: x64
-      jdkSourceOption: PreInstalled
-
-  - bash: |
-      set -euo pipefail
-      chmod +x mvnw
-      ./mvnw --batch-mode --no-transfer-progress verify
-    displayName: Test and build
-
-  - bash: |
-      set -euo pipefail
-      docker build \
-        --file $(Build.SourcesDirectory)/$(dockerfilePath) \
-        --tag $(fullImageName) \
-        $(Build.SourcesDirectory)
-    displayName: Build Docker image
-
-  - bash: |
-      set -euo pipefail
-      mkdir -p $(Pipeline.Workspace)/.trivy-cache
-      docker run --rm \
-        --volume /var/run/docker.sock:/var/run/docker.sock \
-        --volume $(Pipeline.Workspace)/.trivy-cache:/root/.cache/ \
-        aquasec/trivy:0.72.0 \
-        image \
-        --exit-code 1 \
-        --ignore-unfixed \
-        --severity HIGH,CRITICAL \
-        $(fullImageName)
-    displayName: Scan Docker image with Trivy
-
-  - task: Docker@2
-    displayName: Login to ACR
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    inputs:
-      command: login
-      containerRegistry: $(acrServiceConnection)
-
-  - bash: |
-      set -euo pipefail
-      docker push $(fullImageName)
-    displayName: Push Docker image to ACR
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-
-  - task: Docker@2
-    displayName: Logout from ACR
-    condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    inputs:
-      command: logout
-      containerRegistry: $(acrServiceConnection)
+    - bash: |
+        set -euo pipefail
+        chmod +x mvnw
+        ./mvnw --batch-mode --no-transfer-progress verify
+      displayName: 'Test and build'

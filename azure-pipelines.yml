@@ -72,7 +72,7 @@ extends:
             jdkArchitectureOption: x64
             jdkSourceOption: PreInstalled
 
-        - template: pipelines/templates/steps/maven/verify.yml@templates
+        - template: steps/maven/verify.yml@templates
 
         - task: PublishTestResults@2
           displayName: 'Publish test report'
@@ -120,7 +120,7 @@ extends:
               $(candidateTag)
               dev
 
-        - template: pipelines/templates/steps/container/scan.yml@templates
+        - template: steps/container/scan.yml@templates
           parameters:
             scanImage: '$(acrLoginServer)/$(imageRepository):$(candidateTag)'
             trivyVersion: '$(trivyVersion)'
@@ -224,7 +224,7 @@ extends:
           persistCredentials: true
           displayName: 'Checkout full Git history'
 
-        - template: pipelines/templates/steps/container/resolve-candidate.yml@templates
+        - template: steps/container/resolve-candidate.yml@templates
 
     - stage: PromoteImage
       displayName: 'Promote image - $(serviceName)'
@@ -245,7 +245,7 @@ extends:
             command: login
             containerRegistry: '$(containerRegistryServiceConnection)'
 
-        - template: pipelines/templates/steps/container/promote.yml@templates
+        - template: steps/container/promote.yml@templates
           parameters:
             registry: '$(acrLoginServer)'
             repository: '$(imageRepository)'

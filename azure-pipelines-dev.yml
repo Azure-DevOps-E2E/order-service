@@ -53,14 +53,24 @@ extends:
           fetchDepth: 1
           displayName: 'Checkout source code'
 
-        - task: JavaToolInstaller@0
-          displayName: 'Use Java $(javaVersion)'
-          inputs:
-            versionSpec: '$(javaVersion)'
-            jdkArchitectureOption: x64
-            jdkSourceOption: PreInstalled
+        # Host Java setup is kept commented for rollback. Quality now runs in Docker.
+        # - task: JavaToolInstaller@0
+        #   displayName: 'Use Java $(javaVersion)'
+        #   inputs:
+        #     versionSpec: '$(javaVersion)'
+        #     jdkArchitectureOption: x64
+        #     jdkSourceOption: PreInstalled
+        #
+        # - template: steps/maven/verify.yml@templates
 
-        - template: steps/maven/verify.yml@templates
+        - template: steps/container/prepare-build-image.yml@templates
+          parameters:
+            runtime: java
+            version: '$(javaVersion)'
+
+        - template: steps/maven/quality-container.yml@templates
+          parameters:
+            cacheKey: '$(serviceName)-java$(javaVersion)'
 
         - task: PublishTestResults@2
           displayName: 'Publish test report'
@@ -74,6 +84,13 @@ extends:
             failTaskOnFailureToPublishResults: true
             failTaskOnMissingResultsFile: true
             testRunTitle: '$(serviceName) tests'
+
+        - task: UseDotNet@2
+          displayName: 'Use .NET SDK for coverage publisher'
+          condition: succeededOrFailed()
+          inputs:
+            packageType: sdk
+            version: '8.x'
 
         - task: PublishCodeCoverageResults@2
           displayName: 'Publish coverage report'
@@ -144,16 +161,13 @@ extends:
                 path: s/templates
                 displayName: 'Checkout writable config repository'
 
-              - task: PowerShell@2
+              - bash: |
+                  set -euo pipefail
+                  bash "$(Pipeline.Workspace)/s/templates/scripts/update-manifest.sh" \
+                    --service-name "$(serviceName)" \
+                    --environment dev \
+                    --registry "$(acrLoginServer)" \
+                    --image-tag "$(candidateTag)" \
+                    --repository-root "$(Pipeline.Workspace)/s/templates"
                 name: updateManifest
                 displayName: 'Update and push DEV manifest'
-                inputs:
-                  targetType: filePath
-                  filePath: '$(Pipeline.Workspace)/s/templates/scripts/update-manifest.ps1'
-                  arguments: >-
-                    -ServiceName "$(serviceName)"
-                    -Environment dev
-                    -Registry "$(acrLoginServer)"
-                    -ImageTag "$(candidateTag)"
-                    -RepositoryRoot "$(Pipeline.Workspace)/s/templates"
-                  pwsh: true

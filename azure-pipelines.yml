@@ -55,18 +55,18 @@ extends:
         - template: steps/security-scan.yml@templates
           parameters:
             runtime: java
-          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+            condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/container/prepare-build-image.yml@templates
           parameters:
             runtime: java
             version: '$(javaVersion)'
-          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+            condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/maven/quality-container.yml@templates
           parameters:
             cacheKey: '$(serviceName)-java$(javaVersion)'
-          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+            condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - task: PublishTestResults@2
           displayName: 'Publish test report'
@@ -99,10 +99,10 @@ extends:
         - template: steps/qodana-scan.yml@templates
           parameters:
             linter: 'jetbrains/qodana-jvm-community'
-          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+            condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/qodana-quality-gate.yml@templates
           parameters:
             failThreshold: 0
             failOnCritical: true
-          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+            condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))

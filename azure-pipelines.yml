@@ -20,6 +20,7 @@ resources:
     ref: refs/heads/main
 
 variables:
+- group: order-service
 - name: serviceName
   value: 'order-service'
 - name: javaVersion
@@ -44,31 +45,32 @@ extends:
         steps:
         - checkout: self
           clean: true
-          fetchDepth: 1
+          fetchDepth: 0
           displayName: 'Checkout source code'
 
-        # Host Java setup is kept commented for rollback. Quality now runs in Docker.
-        # - task: JavaToolInstaller@0
-        #   displayName: 'Use Java $(javaVersion)'
-        #   inputs:
-        #     versionSpec: '$(javaVersion)'
-        #     jdkArchitectureOption: x64
-        #     jdkSourceOption: PreInstalled
-        #
-        # - template: steps/maven/verify.yml@templates
+        - template: steps/detect-changes.yml@templates
+          parameters:
+            targetBranch: 'main'
+
+        - template: steps/security-scan.yml@templates
+          parameters:
+            runtime: java
+          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/container/prepare-build-image.yml@templates
           parameters:
             runtime: java
             version: '$(javaVersion)'
+          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/maven/quality-container.yml@templates
           parameters:
             cacheKey: '$(serviceName)-java$(javaVersion)'
+          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - task: PublishTestResults@2
           displayName: 'Publish test report'
-          condition: succeededOrFailed()
+          condition: and(succeededOrFailed(), eq(variables['detect.skipHeavyCI'], 'false'))
           inputs:
             testResultsFormat: JUnit
             testResultsFiles: '$(testResultsFiles)'
@@ -81,15 +83,26 @@ extends:
 
         - task: UseDotNet@2
           displayName: 'Use .NET SDK for coverage publisher'
-          condition: succeededOrFailed()
+          condition: and(succeededOrFailed(), eq(variables['detect.skipHeavyCI'], 'false'))
           inputs:
             packageType: sdk
             version: '8.x'
 
         - task: PublishCodeCoverageResults@2
           displayName: 'Publish coverage report'
-          condition: succeededOrFailed()
+          condition: and(succeededOrFailed(), eq(variables['detect.skipHeavyCI'], 'false'))
           inputs:
             summaryFileLocation: '$(coverageSummaryFile)'
             pathToSources: '$(Build.SourcesDirectory)'
             failIfCoverageEmpty: true
+
+        - template: steps/qodana-scan.yml@templates
+          parameters:
+            linter: 'jetbrains/qodana-jvm-community'
+          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
+
+        - template: steps/qodana-quality-gate.yml@templates
+          parameters:
+            failThreshold: 0
+            failOnCritical: true
+          condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))

@@ -10,6 +10,10 @@ RUN mvn --batch-mode --no-transfer-progress verify
 FROM eclipse-temurin:21.0.11_10-jre-ubi10-minimal
 
 WORKDIR /app
+ARG APP_VERSION=1.0.0
+ARG APP_IMAGE_TAG=1.0.0
+ENV APP_VERSION=${APP_VERSION} \
+    APP_IMAGE_TAG=${APP_IMAGE_TAG}
 COPY --from=build --chown=10001:10001 /src/target/order-service-1.0.0.jar app.jar
 
 USER 10001:10001

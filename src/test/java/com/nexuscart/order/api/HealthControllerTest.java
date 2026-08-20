@@ -10,11 +10,12 @@ class HealthControllerTest {
 
     @Test
     void healthIncludesServiceVersion() {
-        HealthController controller = new HealthController("1.2.3-test");
+        HealthController controller = new HealthController("1.2.3-test", "order-test-tag");
 
         assertThat(controller.health()).isEqualTo(Map.of(
                 "status", "UP",
                 "service", "order-service",
-                "version", "1.2.3-test"));
+                "version", "1.2.3-test",
+                "imageTag", "order-test-tag"));
     }
 }

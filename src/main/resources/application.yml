@@ -10,6 +10,7 @@ spring:
 
 app:
   version: ${APP_VERSION:1.0.0}
+  image-tag: ${APP_IMAGE_TAG:${app.version}}
 
 services:
   user:

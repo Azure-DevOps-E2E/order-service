@@ -99,7 +99,7 @@ extends:
         - template: steps/qodana-scan.yml@templates
           parameters:
             linter: 'jetbrains/qodana-jvm-community'
-            maxMemory: '1024m'
+            maxMemory: '512m'
             condition: and(succeeded(), eq(variables['detect.skipHeavyCI'], 'false'))
 
         - template: steps/qodana-quality-gate.yml@templates

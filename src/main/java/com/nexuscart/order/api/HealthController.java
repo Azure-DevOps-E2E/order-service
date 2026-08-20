@@ -10,9 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     private final String version;
+    private final String imageTag;
 
-    public HealthController(@Value("${app.version}") String version) {
+    public HealthController(
+            @Value("${app.version}") String version,
+            @Value("${app.image-tag:${app.version}}") String imageTag) {
         this.version = version;
+        this.imageTag = imageTag;
     }
 
     @GetMapping("/health")
@@ -20,6 +24,7 @@ public class HealthController {
         return Map.of(
                 "status", "UP",
                 "service", "order-service",
-                "version", version);
+                "version", version,
+                "imageTag", imageTag);
     }
 }

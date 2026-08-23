@@ -27,4 +27,11 @@ public class HealthController {
                 "version", version,
                 "imageTag", imageTag);
     }
+
+    @GetMapping("/liveness")
+    Map<String, String> liveness() {
+        return Map.of(
+                "status", "UP",
+                "service", "order-service");
+    }
 }

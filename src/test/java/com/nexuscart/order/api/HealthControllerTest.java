@@ -18,4 +18,13 @@ class HealthControllerTest {
                 "version", "1.2.3-test",
                 "imageTag", "order-test-tag"));
     }
+
+    @Test
+    void livenessReportsProcessIsUp() {
+        HealthController controller = new HealthController("1.2.3-test", "order-test-tag");
+
+        assertThat(controller.liveness()).isEqualTo(Map.of(
+                "status", "UP",
+                "service", "order-service"));
+    }
 }

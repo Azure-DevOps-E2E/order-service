@@ -12,7 +12,7 @@ orders in memory.
 - Overflow-safe line and order total calculations.
 - Newest-first order history.
 - End-to-end `X-Request-ID` propagation to downstream services and logs.
-- Versioned health reporting through `GET /health`.
+- Versioned health reporting through `GET /health` and process probing through `GET /liveness`.
 - Multi-stage container build with a non-root runtime user.
 
 ## 🧭 Service Context
@@ -33,6 +33,7 @@ server.
 | Method | Path | Success | Description |
 |---|---|---:|---|
 | `GET` | `/health` | `200` | Service identity and deployed version |
+| `GET` | `/liveness` | `200` | Dependency-free process liveness |
 | `GET` | `/api/v1/orders` | `200` | Orders in newest-first order |
 | `GET` | `/api/v1/orders/{id}` | `200` | One order by ID |
 | `POST` | `/api/v1/orders` | `201` | Validate and create an order |
